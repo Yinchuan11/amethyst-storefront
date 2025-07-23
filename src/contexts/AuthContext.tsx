@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
   isAdminLoggedIn: boolean;
@@ -20,13 +21,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const login = async (username: string, password: string): Promise<boolean> => {
-    // Admin credentials as specified by user: ADMkz / ADMkz777
-    if (username === 'ADMkz' && password === 'ADMkz777') {
-      setIsAdminLoggedIn(true);
-      localStorage.setItem('admin-logged-in', 'true');
-      return true;
+    try {
+      const { data, error } = await supabase.functions.invoke('admin-auth', {
+        body: { username, password }
+      });
+
+      if (error) {
+        console.error('Admin auth error:', error);
+        return false;
+      }
+
+      if (data?.success) {
+        setIsAdminLoggedIn(true);
+        localStorage.setItem('admin-logged-in', 'true');
+        return true;
+      }
+
+      return false;
+    } catch (error) {
+      console.error('Admin authentication failed:', error);
+      return false;
     }
-    return false;
   };
 
   const logout = () => {
