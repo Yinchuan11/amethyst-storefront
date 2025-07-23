@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { User, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -7,10 +7,15 @@ import CartDrawer from "./CartDrawer";
 import AdminLoginDialog from "./AdminLoginDialog";
 import { useNavigate } from "react-router-dom";
 
-const Header = () => {
+interface HeaderProps {
+  onSearch: (query: string) => void;
+}
+
+const Header = ({ onSearch }: HeaderProps) => {
   const navigate = useNavigate();
   const { isAdminLoggedIn } = useAuth();
   const [showAdminLogin, setShowAdminLogin] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleAdminClick = () => {
     if (isAdminLoggedIn) {
@@ -22,6 +27,12 @@ const Header = () => {
 
   const handleLoginSuccess = () => {
     navigate("/admin");
+  };
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    onSearch(query);
   };
 
   return (
@@ -39,14 +50,13 @@ const Header = () => {
             <Input 
               placeholder="Produkte suchen..." 
               className="pl-10 bg-muted/50"
+              value={searchQuery}
+              onChange={handleSearchChange}
             />
           </div>
         </div>
         
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon">
-            <User className="h-5 w-5" />
-          </Button>
           <CartDrawer />
           <Button 
             variant="outline" 

@@ -14,6 +14,60 @@ export type Database = {
   }
   public: {
     Tables: {
+      orders: {
+        Row: {
+          adresse: string
+          bitcoin_address: string | null
+          bitcoin_amount: number | null
+          bundesland: string
+          created_at: string
+          customer_email: string | null
+          customer_name: string
+          id: string
+          items: Json
+          payment_confirmed_at: string | null
+          payment_status: string
+          postleitzahl: string
+          stadt: string
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          adresse: string
+          bitcoin_address?: string | null
+          bitcoin_amount?: number | null
+          bundesland: string
+          created_at?: string
+          customer_email?: string | null
+          customer_name: string
+          id?: string
+          items: Json
+          payment_confirmed_at?: string | null
+          payment_status?: string
+          postleitzahl: string
+          stadt: string
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          adresse?: string
+          bitcoin_address?: string | null
+          bitcoin_amount?: number | null
+          bundesland?: string
+          created_at?: string
+          customer_email?: string | null
+          customer_name?: string
+          id?: string
+          items?: Json
+          payment_confirmed_at?: string | null
+          payment_status?: string
+          postleitzahl?: string
+          stadt?: string
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       products: {
         Row: {
           created_at: string

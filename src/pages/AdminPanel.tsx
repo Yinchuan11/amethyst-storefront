@@ -7,10 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
-import { Plus, Edit, Trash2, LogOut, ArrowLeft } from "lucide-react";
+import { Plus, Edit, Trash2, LogOut, ArrowLeft, Package, ShoppingBag } from "lucide-react";
 
 interface Product {
   id: string;
@@ -19,12 +21,31 @@ interface Product {
   image?: string;
 }
 
+interface Order {
+  id: string;
+  customer_name: string;
+  customer_email?: string;
+  bundesland: string;
+  stadt: string;
+  postleitzahl: string;
+  adresse: string;
+  items: any[];
+  total_amount: number;
+  bitcoin_address?: string;
+  bitcoin_amount?: number;
+  payment_status: string;
+  payment_confirmed_at?: string;
+  created_at: string;
+}
+
 const AdminPanel = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isAdminLoggedIn, logout } = useAuth();
   const [products, setProducts] = useState<Product[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [ordersLoading, setOrdersLoading] = useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
@@ -39,6 +60,7 @@ const AdminPanel = () => {
       return;
     }
     fetchProducts();
+    fetchOrders();
   }, [isAdminLoggedIn, navigate]);
 
   const fetchProducts = async () => {
@@ -59,6 +81,27 @@ const AdminPanel = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchOrders = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setOrders((data || []) as Order[]);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      toast({
+        title: "Fehler",
+        description: "Bestellungen konnten nicht geladen werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setOrdersLoading(false);
     }
   };
 
@@ -216,8 +259,20 @@ const AdminPanel = () => {
           </Button>
         </div>
 
-        <div className="grid gap-6">
-          <Card>
+        <Tabs defaultValue="products" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="products" className="flex items-center gap-2">
+              <Package className="h-4 w-4" />
+              Produkte
+            </TabsTrigger>
+            <TabsTrigger value="orders" className="flex items-center gap-2">
+              <ShoppingBag className="h-4 w-4" />
+              Bestellungen
+            </TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="products" className="space-y-6">
+            <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Produktverwaltung</CardTitle>
@@ -359,7 +414,90 @@ const AdminPanel = () => {
               )}
             </CardContent>
           </Card>
-        </div>
+          </TabsContent>
+          
+          <TabsContent value="orders" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Bestellungen</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {ordersLoading ? (
+                  <div className="text-center py-8">Laden...</div>
+                ) : orders.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    Keine Bestellungen vorhanden.
+                  </div>
+                ) : (
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Kunde</TableHead>
+                        <TableHead>Adresse</TableHead>
+                        <TableHead>Artikel</TableHead>
+                        <TableHead>Betrag</TableHead>
+                        <TableHead>Bitcoin</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Datum</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {orders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell>
+                            <div>
+                              <div className="font-medium">{order.customer_name}</div>
+                              {order.customer_email && (
+                                <div className="text-sm text-muted-foreground">{order.customer_email}</div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              <div>{order.adresse}</div>
+                              <div>{order.postleitzahl} {order.stadt}</div>
+                              <div>{order.bundesland}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              {order.items.map((item: any, index: number) => (
+                                <div key={index}>
+                                  {item.quantity}x {item.name}
+                                </div>
+                              ))}
+                            </div>
+                          </TableCell>
+                          <TableCell>€{order.total_amount.toFixed(2)}</TableCell>
+                          <TableCell>
+                            <div className="text-sm">
+                              <div>{order.bitcoin_amount} BTC</div>
+                              <div className="text-xs text-muted-foreground font-mono">
+                                {order.bitcoin_address?.slice(0, 10)}...
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={order.payment_status === 'confirmed' ? 'default' : 'secondary'}
+                            >
+                              {order.payment_status === 'pending' ? 'Ausstehend' : 
+                               order.payment_status === 'confirmed' ? 'Bestätigt' : 
+                               order.payment_status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {new Date(order.created_at).toLocaleDateString('de-DE')}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

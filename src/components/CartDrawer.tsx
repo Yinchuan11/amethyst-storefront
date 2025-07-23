@@ -1,12 +1,15 @@
+import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart, Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/contexts/CartContext";
 import { Separator } from "@/components/ui/separator";
 import productPlaceholder from "@/assets/product-placeholder.jpg";
+import CheckoutDialog from "./CheckoutDialog";
 
 const CartDrawer = () => {
   const { items, updateQuantity, removeFromCart, getTotalItems, getTotalPrice, clearCart } = useCart();
+  const [showCheckout, setShowCheckout] = useState(false);
 
   const formatPrice = (price: number) => `€${price.toFixed(2)}`;
 
@@ -92,7 +95,10 @@ const CartDrawer = () => {
                 </div>
                 
                 <div className="space-y-2">
-                  <Button className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90">
+                  <Button 
+                    className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
+                    onClick={() => setShowCheckout(true)}
+                  >
                     Zur Kasse
                   </Button>
                   <Button
@@ -108,6 +114,11 @@ const CartDrawer = () => {
           )}
         </div>
       </SheetContent>
+      
+      <CheckoutDialog
+        open={showCheckout}
+        onOpenChange={setShowCheckout}
+      />
     </Sheet>
   );
 };
