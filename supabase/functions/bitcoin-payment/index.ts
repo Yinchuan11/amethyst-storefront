@@ -71,11 +71,11 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
-    const url = new URL(req.url);
-    const action = url.searchParams.get('action');
+    const body = await req.json();
+    const action = body.action;
 
     if (action === 'create-payment') {
-      const { orderId, amount }: BitcoinPaymentRequest = await req.json();
+      const { orderId, amount }: BitcoinPaymentRequest = body;
       
       console.log(`Creating payment for order ${orderId}, amount: €${amount}`);
 
@@ -113,7 +113,7 @@ const handler = async (req: Request): Promise<Response> => {
       });
 
     } else if (action === 'check-payment') {
-      const orderId = url.searchParams.get('orderId');
+      const orderId = body.orderId;
       
       if (!orderId) {
         throw new Error('Order ID required');
