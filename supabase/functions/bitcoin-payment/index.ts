@@ -28,13 +28,29 @@ const BLOCKCHAIN_API_KEY = Deno.env.get('BLOCKCHAIN_API_KEY') || '';
 // Get current BTC/EUR exchange rate
 async function getBTCPrice(): Promise<number> {
   try {
-    const response = await fetch('https://api.coindesk.com/v1/bpi/currentprice/EUR.json');
+    // Try CoinGecko API first (more reliable)
+    const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=bitcoin&vs_currencies=eur');
     const data = await response.json();
-    return parseFloat(data.bpi.EUR.rate.replace(/,/g, ''));
+    if (data.bitcoin && data.bitcoin.eur) {
+      console.log(`BTC price from CoinGecko: €${data.bitcoin.eur}`);
+      return data.bitcoin.eur;
+    }
+    throw new Error('Invalid response from CoinGecko');
   } catch (error) {
-    console.error('Error fetching BTC price:', error);
-    // Fallback price if API fails
-    return 45000;
+    console.error('Error fetching BTC price from CoinGecko:', error);
+    try {
+      // Fallback to CoinDesk API
+      const response = await fetch('https://api.coindesk.com/v1/bpi/currentprice/EUR.json');
+      const data = await response.json();
+      const price = parseFloat(data.bpi.EUR.rate.replace(/,/g, ''));
+      console.log(`BTC price from CoinDesk: €${price}`);
+      return price;
+    } catch (fallbackError) {
+      console.error('Error fetching BTC price from CoinDesk:', fallbackError);
+      // More realistic fallback price (current market price around 90,000€)
+      console.log('Using fallback BTC price: €90000');
+      return 90000;
+    }
   }
 }
 

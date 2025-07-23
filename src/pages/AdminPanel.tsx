@@ -471,7 +471,7 @@ const AdminPanel = () => {
                           <TableCell>€{order.total_amount.toFixed(2)}</TableCell>
                           <TableCell>
                             <div className="text-sm">
-                              <div>{order.bitcoin_amount} BTC</div>
+                              <div>{order.bitcoin_amount ? Number(order.bitcoin_amount).toFixed(8) : '0.00000000'} BTC</div>
                               <div className="text-xs text-muted-foreground font-mono">
                                 {order.bitcoin_address?.slice(0, 10)}...
                               </div>
