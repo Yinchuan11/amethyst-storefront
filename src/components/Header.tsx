@@ -1,8 +1,32 @@
 import { ShoppingCart, User, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 
 const Header = () => {
+  const { toast } = useToast();
+
+  const handleAdminClick = () => {
+    toast({
+      title: "Admin-Bereich",
+      description: "Admin-Panel wird bald implementiert.",
+    });
+  };
+
+  const handleUserClick = () => {
+    toast({
+      title: "Benutzer-Bereich",
+      description: "Anmeldung wird bald implementiert.",
+    });
+  };
+
+  const handleCartClick = () => {
+    toast({
+      title: "Warenkorb",
+      description: "Warenkorb ist derzeit leer.",
+    });
+  };
+
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
@@ -23,10 +47,10 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon">
+          <Button variant="ghost" size="icon" onClick={handleUserClick}>
             <User className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="relative">
+          <Button variant="ghost" size="icon" className="relative" onClick={handleCartClick}>
             <ShoppingCart className="h-5 w-5" />
             <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
               0
@@ -36,6 +60,7 @@ const Header = () => {
             variant="outline" 
             size="sm"
             className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+            onClick={handleAdminClick}
           >
             Admin
           </Button>

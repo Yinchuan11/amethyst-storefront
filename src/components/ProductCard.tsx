@@ -2,6 +2,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import productPlaceholder from "@/assets/product-placeholder.jpg";
+import { useToast } from "@/hooks/use-toast";
 
 interface Product {
   id: string;
@@ -15,6 +16,15 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const { toast } = useToast();
+
+  const handleAddToCart = () => {
+    toast({
+      title: "Produkt hinzugefügt",
+      description: `${product.name} wurde zum Warenkorb hinzugefügt.`,
+    });
+  };
+
   return (
     <Card className="group hover:bg-shop-card-hover transition-all duration-300 hover:shadow-lg hover:shadow-shop-accent-glow border-border">
       <CardContent className="p-4">
@@ -36,6 +46,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
         <Button 
           className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90"
           size="sm"
+          onClick={handleAddToCart}
         >
           <ShoppingCart className="w-4 h-4 mr-2" />
           In den Warenkorb
