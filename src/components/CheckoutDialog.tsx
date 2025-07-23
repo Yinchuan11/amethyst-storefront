@@ -16,9 +16,11 @@ interface CheckoutDialogProps {
 
 interface PaymentDetails {
   address: string;
-  amount_btc: number;
+  amount_btc?: number;
+  amount_ltc?: number;
   amount_eur: number;
   qr_url: string;
+  currency: 'bitcoin' | 'litecoin';
 }
 
 const BUNDESLAENDER = [
@@ -32,7 +34,8 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
   const { toast } = useToast();
   const { items, getTotalPrice, clearCart } = useCart();
   const [loading, setLoading] = useState(false);
-  const [step, setStep] = useState<'address' | 'payment'>('address');
+  const [step, setStep] = useState<'address' | 'payment-method' | 'payment'>('address');
+  const [paymentMethod, setPaymentMethod] = useState<'bitcoin' | 'litecoin' | null>(null);
   const [paymentDetails, setPaymentDetails] = useState<PaymentDetails | null>(null);
   const [orderId, setOrderId] = useState<string | null>(null);
   const [paymentConfirmed, setPaymentConfirmed] = useState(false);
@@ -91,6 +94,7 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
 
   const resetDialog = () => {
     setStep('address');
+    setPaymentMethod(null);
     setPaymentDetails(null);
     setOrderId(null);
     setPaymentConfirmed(false);
@@ -151,24 +155,11 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
       if (error) throw error;
 
       setOrderId(order.id);
-
-      // Create Bitcoin payment through Edge Function
-      const { data: payment, error: paymentError } = await supabase.functions.invoke('bitcoin-payment', {
-        body: {
-          action: 'create-payment',
-          orderId: order.id,
-          amount: totalEur
-        }
-      });
-
-      if (paymentError) throw paymentError;
-
-      setPaymentDetails(payment);
-      setStep('payment');
+      setStep('payment-method');
 
       toast({
         title: "Bestellung erstellt!",
-        description: "Bitte überweisen Sie den Bitcoin-Betrag zur angegebenen Adresse.",
+        description: "Wählen Sie Ihre bevorzugte Zahlungsmethode.",
       });
 
     } catch (error) {
@@ -176,6 +167,51 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
       toast({
         title: "Fehler",
         description: "Bestellung konnte nicht erstellt werden.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePaymentMethodSelect = async (method: 'bitcoin' | 'litecoin') => {
+    if (!orderId) return;
+    
+    setPaymentMethod(method);
+    setLoading(true);
+
+    try {
+      const totalEur = getTotalPrice();
+
+      // Create payment through Edge Function
+      const { data: payment, error: paymentError } = await supabase.functions.invoke('bitcoin-payment', {
+        body: {
+          action: 'create-payment',
+          orderId: orderId,
+          amount: totalEur,
+          currency: method
+        }
+      });
+
+      if (paymentError) throw paymentError;
+
+      setPaymentDetails({
+        ...payment,
+        currency: method
+      });
+      setStep('payment');
+
+      const currencyName = method === 'bitcoin' ? 'Bitcoin' : 'Litecoin';
+      toast({
+        title: "Zahlung bereit!",
+        description: `Bitte überweisen Sie den ${currencyName}-Betrag zur angegebenen Adresse.`,
+      });
+
+    } catch (error) {
+      console.error('Error creating payment:', error);
+      toast({
+        title: "Fehler",
+        description: "Zahlung konnte nicht erstellt werden.",
         variant: "destructive",
       });
     } finally {
@@ -204,7 +240,9 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
         <DialogHeader>
           <DialogTitle>
             {step === 'address' ? 'Checkout - Lieferadresse' : 
-             paymentConfirmed ? 'Zahlung bestätigt!' : 'Bitcoin Zahlung'}
+             step === 'payment-method' ? 'Zahlungsmethode wählen' :
+             paymentConfirmed ? 'Zahlung bestätigt!' : 
+             paymentMethod === 'bitcoin' ? 'Bitcoin Zahlung' : 'Litecoin Zahlung'}
           </DialogTitle>
         </DialogHeader>
         
@@ -312,6 +350,50 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
             </div>
           </div>
         </form>
+        ) : step === 'payment-method' ? (
+        <div className="space-y-6">
+          <div className="text-center">
+            <h3 className="text-lg font-semibold mb-2">Zahlungsmethode wählen</h3>
+            <p className="text-muted-foreground mb-6">
+              Mit welcher Kryptowährung möchten Sie bezahlen?
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            <Button
+              onClick={() => handlePaymentMethodSelect('bitcoin')}
+              disabled={loading}
+              className="w-full p-6 bg-orange-500 hover:bg-orange-600 text-white font-semibold text-lg"
+            >
+              {loading && paymentMethod === 'bitcoin' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              ₿ Bitcoin
+            </Button>
+            
+            <Button
+              onClick={() => handlePaymentMethodSelect('litecoin')}
+              disabled={loading}
+              className="w-full p-6 bg-gray-500 hover:bg-gray-600 text-white font-semibold text-lg"
+            >
+              {loading && paymentMethod === 'litecoin' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              Ł Litecoin
+            </Button>
+          </div>
+
+          <div className="pt-4 border-t">
+            <div className="flex justify-between items-center mb-4">
+              <span className="font-semibold">Gesamtbetrag:</span>
+              <span className="font-bold text-lg">€{getTotalPrice().toFixed(2)}</span>
+            </div>
+            
+            <Button
+              variant="outline"
+              onClick={() => setStep('address')}
+              className="w-full"
+            >
+              Zurück zur Adresse
+            </Button>
+          </div>
+        </div>
         ) : (
         <div className="space-y-6">
           {paymentConfirmed ? (
