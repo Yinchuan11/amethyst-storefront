@@ -40,7 +40,7 @@ const Header = ({ onSearch }: HeaderProps) => {
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-            AmethystShop
+            ENIGMA MARKET
           </h1>
         </div>
         
