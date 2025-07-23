@@ -405,15 +405,19 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
           ) : paymentDetails ? (
             <>
               <div className="text-center">
-                <h3 className="text-lg font-semibold mb-2">Bitcoin-Zahlung erforderlich</h3>
+                <h3 className="text-lg font-semibold mb-2">
+                  {paymentDetails.currency === 'bitcoin' ? 'Bitcoin' : 'Litecoin'}-Zahlung erforderlich
+                </h3>
                 <p className="text-muted-foreground mb-4">
-                  Überweisen Sie den unten angegebenen Betrag an die Bitcoin-Adresse
+                  Überweisen Sie den unten angegebenen Betrag an die {paymentDetails.currency === 'bitcoin' ? 'Bitcoin' : 'Litecoin'}-Adresse
                 </p>
               </div>
 
               <div className="space-y-4 p-4 bg-muted rounded-lg">
                 <div>
-                  <Label className="text-sm font-medium">Bitcoin-Adresse:</Label>
+                  <Label className="text-sm font-medium">
+                    {paymentDetails.currency === 'bitcoin' ? 'Bitcoin' : 'Litecoin'}-Adresse:
+                  </Label>
                   <div className="flex items-center gap-2 mt-1">
                     <code className="bg-background p-2 rounded text-xs flex-1 break-all">
                       {paymentDetails.address}
@@ -432,12 +436,19 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
                   <Label className="text-sm font-medium">Betrag:</Label>
                   <div className="flex items-center gap-2 mt-1">
                     <code className="bg-background p-2 rounded font-mono flex-1">
-                      {paymentDetails.amount_btc.toFixed(8)} BTC
+                      {paymentDetails.currency === 'bitcoin' 
+                        ? `${paymentDetails.amount_btc?.toFixed(8)} BTC`
+                        : `${paymentDetails.amount_ltc?.toFixed(8)} LTC`
+                      }
                     </code>
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => copyToClipboard(paymentDetails.amount_btc.toFixed(8))}
+                      onClick={() => copyToClipboard(
+                        paymentDetails.currency === 'bitcoin' 
+                          ? paymentDetails.amount_btc?.toFixed(8) || ''
+                          : paymentDetails.amount_ltc?.toFixed(8) || ''
+                      )}
                     >
                       <Copy className="h-4 w-4" />
                     </Button>

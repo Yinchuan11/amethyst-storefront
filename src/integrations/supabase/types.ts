@@ -25,6 +25,8 @@ export type Database = {
           customer_name: string
           id: string
           items: Json
+          litecoin_address: string | null
+          litecoin_amount: number | null
           payment_confirmed_at: string | null
           payment_status: string
           postleitzahl: string
@@ -42,6 +44,8 @@ export type Database = {
           customer_name: string
           id?: string
           items: Json
+          litecoin_address?: string | null
+          litecoin_amount?: number | null
           payment_confirmed_at?: string | null
           payment_status?: string
           postleitzahl: string
@@ -59,6 +63,8 @@ export type Database = {
           customer_name?: string
           id?: string
           items?: Json
+          litecoin_address?: string | null
+          litecoin_amount?: number | null
           payment_confirmed_at?: string | null
           payment_status?: string
           postleitzahl?: string

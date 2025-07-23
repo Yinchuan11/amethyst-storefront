@@ -37,13 +37,12 @@ serve(async (req) => {
       throw new Error('BITCOIN_WALLET_ADDRESS not configured')
     }
 
-    // Get all pending orders
+    // Get all pending orders (both Bitcoin and Litecoin)
     const { data: pendingOrders, error: ordersError } = await supabase
       .from('orders')
       .select('*')
       .eq('payment_status', 'pending')
-      .not('bitcoin_address', 'is', null)
-      .not('bitcoin_amount', 'is', null)
+      .or('bitcoin_address.is.not.null,litecoin_address.is.not.null')
 
     if (ordersError) {
       console.error('Error fetching pending orders:', ordersError)
@@ -64,13 +63,18 @@ serve(async (req) => {
     // Check each pending order
     for (const order of pendingOrders) {
       try {
-        console.log(`Checking order ${order.id} for ${order.bitcoin_amount} BTC`)
+        let isPaymentConfirmed = false;
         
-        // Check if payment has been received
-        const isPaymentConfirmed = await checkBitcoinPayment(
-          walletAddress,
-          parseFloat(order.bitcoin_amount)
-        )
+        if (order.bitcoin_address && order.bitcoin_amount) {
+          console.log(`Checking Bitcoin payment for order ${order.id} for ${order.bitcoin_amount} BTC`)
+          isPaymentConfirmed = await checkBitcoinPayment(order.bitcoin_address, parseFloat(order.bitcoin_amount))
+        } else if (order.litecoin_address && order.litecoin_amount) {
+          console.log(`Checking Litecoin payment for order ${order.id} for ${order.litecoin_amount} LTC`)
+          isPaymentConfirmed = await checkLitecoinPayment(order.litecoin_address, parseFloat(order.litecoin_amount))
+        } else {
+          console.log(`Skipping order ${order.id} - no payment details`)
+          continue;
+        }
 
         if (isPaymentConfirmed) {
           console.log(`Payment confirmed for order ${order.id}`)
@@ -91,7 +95,8 @@ serve(async (req) => {
             console.log(`Successfully confirmed order ${order.id}`)
           }
         } else {
-          console.log(`Payment not yet confirmed for order ${order.id}`)
+          const currency = order.bitcoin_address ? 'Bitcoin' : 'Litecoin';
+          console.log(`${currency} payment not yet confirmed for order ${order.id}`)
         }
       } catch (error) {
         console.error(`Error checking order ${order.id}:`, error)
@@ -100,7 +105,7 @@ serve(async (req) => {
 
     return new Response(
       JSON.stringify({
-        message: `Bitcoin monitor completed. Confirmed ${confirmedCount} orders out of ${pendingOrders.length} pending orders.`,
+        message: `Crypto monitor completed. Confirmed ${confirmedCount} orders out of ${pendingOrders.length} pending orders.`,
         confirmedCount,
         totalChecked: pendingOrders.length
       }),
@@ -108,7 +113,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Bitcoin monitor error:', error)
+    console.error('Crypto monitor error:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       {
@@ -156,6 +161,37 @@ async function checkBitcoinPayment(address: string, expectedAmount: number): Pro
     return false
   } catch (error) {
     console.error('Error checking Bitcoin payment:', error)
+    return false
+  }
+}
+
+async function checkLitecoinPayment(address: string, expectedAmount: number): Promise<boolean> {
+  try {
+    // Use blockchair API for Litecoin
+    const response = await fetch(`https://api.blockchair.com/litecoin/dashboards/address/${address}`)
+    
+    if (!response.ok) {
+      console.error('Failed to fetch Litecoin transactions:', response.status, response.statusText)
+      return false
+    }
+
+    const data = await response.json()
+    
+    if (data.data && data.data[address]) {
+      const addressInfo = data.data[address].address;
+      const receivedLitoshis = addressInfo.received; // Amount in litoshis (1 LTC = 100,000,000 litoshis)
+      const receivedLTC = receivedLitoshis / 100000000; // Convert to LTC
+      
+      // Allow for small rounding differences (within 0.00001 LTC)
+      if (Math.abs(receivedLTC - expectedAmount) < 0.00001) {
+        console.log(`Found matching Litecoin payment: ${receivedLTC} LTC to ${address}`)
+        return true
+      }
+    }
+    
+    return false
+  } catch (error) {
+    console.error('Error checking Litecoin payment:', error)
     return false
   }
 }

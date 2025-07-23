@@ -33,6 +33,8 @@ interface Order {
   total_amount: number;
   bitcoin_address?: string;
   bitcoin_amount?: number;
+  litecoin_address?: string;
+  litecoin_amount?: number;
   payment_status: string;
   payment_confirmed_at?: string;
   created_at: string;
@@ -436,7 +438,7 @@ const AdminPanel = () => {
                         <TableHead>Adresse</TableHead>
                         <TableHead>Artikel</TableHead>
                         <TableHead>Betrag</TableHead>
-                        <TableHead>Bitcoin</TableHead>
+                        <TableHead>Krypto</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Datum</TableHead>
                       </TableRow>
@@ -470,12 +472,21 @@ const AdminPanel = () => {
                           </TableCell>
                           <TableCell>€{order.total_amount.toFixed(2)}</TableCell>
                           <TableCell>
-                            <div className="text-sm">
-                              <div>{order.bitcoin_amount ? Number(order.bitcoin_amount).toFixed(8) : '0.00000000'} BTC</div>
-                              <div className="text-xs text-muted-foreground font-mono">
-                                {order.bitcoin_address?.slice(0, 10)}...
+                            {order.bitcoin_amount || order.litecoin_amount ? (
+                              <div className="text-sm">
+                                {order.bitcoin_amount && (
+                                  <div>{Number(order.bitcoin_amount).toFixed(8)} BTC</div>
+                                )}
+                                {order.litecoin_amount && (
+                                  <div>{Number(order.litecoin_amount).toFixed(8)} LTC</div>
+                                )}
+                                <div className="text-xs text-muted-foreground font-mono">
+                                  {(order.bitcoin_address || order.litecoin_address)?.slice(0, 10)}...
+                                </div>
                               </div>
-                            </div>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">Noch nicht erstellt</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             <Badge 
