@@ -17,8 +17,8 @@ All colors MUST be HSL.
     --popover: 225 15% 12%;
     --popover-foreground: 280 20% 95%;
 
-    --primary: 202 36% 54%;
-    --primary-foreground: 220 13% 8%;
+    --primary: 41 5% 38%;
+    --primary-foreground: 280 20% 95%;
 
     --secondary: 225 10% 20%;
     --secondary-foreground: 280 20% 95%;
@@ -26,20 +26,20 @@ All colors MUST be HSL.
     --muted: 225 10% 16%;
     --muted-foreground: 280 10% 70%;
 
-    --accent: 202 30% 48%;
-    --accent-foreground: 220 13% 8%;
+    --accent: 41 5% 38%;
+    --accent-foreground: 280 20% 95%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 280 20% 95%;
 
     --border: 225 10% 20%;
     --input: 225 10% 20%;
-    --ring: 202 36% 54%;
+    --ring: 41 5% 38%;
 
     /* Shop-spezifische Farben */
-    --shop-gradient: linear-gradient(135deg, hsl(202 36% 54%), hsl(202 30% 48%));
+    --shop-gradient: linear-gradient(135deg, hsl(41 5% 38%), hsl(41 5% 38%));
     --shop-card-hover: 225 15% 18%;
-    --shop-accent-glow: 202 36% 54% / 0.3;
+    --shop-accent-glow: 41 5% 38% / 0.3;
 
     --radius: 0.5rem;
 
@@ -70,8 +70,8 @@ All colors MUST be HSL.
     --popover: 222.2 84% 4.9%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 202 36% 54%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary: 41 5% 38%;
+    --primary-foreground: 210 40% 98%;
 
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
@@ -79,7 +79,7 @@ All colors MUST be HSL.
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 202 30% 48%;
+    --accent: 41 5% 38%;
     --accent-foreground: 210 40% 98%;
 
     --destructive: 0 62.8% 30.6%;
@@ -87,7 +87,7 @@ All colors MUST be HSL.
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 202 36% 54%;
+    --ring: 41 5% 38%;
     --sidebar-background: 240 5.9% 10%;
     --sidebar-foreground: 240 4.8% 95.9%;
     --sidebar-primary: 224.3 76.3% 48%;
