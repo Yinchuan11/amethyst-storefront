@@ -55,9 +55,7 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
       interval = setInterval(async () => {
         try {
           const { data, error } = await supabase.functions.invoke('bitcoin-payment', {
-            method: 'GET',
-            headers: { 'Content-Type': 'application/json' },
-            body: new URLSearchParams({ action: 'check-payment', orderId })
+            body: { action: 'check-payment', orderId }
           });
 
           if (error) throw error;
@@ -156,13 +154,11 @@ const CheckoutDialog = ({ open, onOpenChange }: CheckoutDialogProps) => {
 
       // Create Bitcoin payment through Edge Function
       const { data: payment, error: paymentError } = await supabase.functions.invoke('bitcoin-payment', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+        body: {
           action: 'create-payment',
           orderId: order.id,
           amount: totalEur
-        })
+        }
       });
 
       if (paymentError) throw paymentError;
