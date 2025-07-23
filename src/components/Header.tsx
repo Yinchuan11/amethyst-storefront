@@ -1,30 +1,27 @@
-import { ShoppingCart, User, Search } from "lucide-react";
+import { useState } from "react";
+import { User, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import CartDrawer from "./CartDrawer";
+import AdminLoginDialog from "./AdminLoginDialog";
+import { useNavigate } from "react-router-dom";
 
 const Header = () => {
-  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { isAdminLoggedIn } = useAuth();
+  const [showAdminLogin, setShowAdminLogin] = useState(false);
 
   const handleAdminClick = () => {
-    toast({
-      title: "Admin-Bereich",
-      description: "Admin-Panel wird bald implementiert.",
-    });
+    if (isAdminLoggedIn) {
+      navigate("/admin");
+    } else {
+      setShowAdminLogin(true);
+    }
   };
 
-  const handleUserClick = () => {
-    toast({
-      title: "Benutzer-Bereich",
-      description: "Anmeldung wird bald implementiert.",
-    });
-  };
-
-  const handleCartClick = () => {
-    toast({
-      title: "Warenkorb",
-      description: "Warenkorb ist derzeit leer.",
-    });
+  const handleLoginSuccess = () => {
+    navigate("/admin");
   };
 
   return (
@@ -47,25 +44,26 @@ const Header = () => {
         </div>
         
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="icon" onClick={handleUserClick}>
+          <Button variant="ghost" size="icon">
             <User className="h-5 w-5" />
           </Button>
-          <Button variant="ghost" size="icon" className="relative" onClick={handleCartClick}>
-            <ShoppingCart className="h-5 w-5" />
-            <span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
-              0
-            </span>
-          </Button>
+          <CartDrawer />
           <Button 
             variant="outline" 
             size="sm"
             className="border-primary text-primary hover:bg-primary hover:text-primary-foreground"
             onClick={handleAdminClick}
           >
-            Admin
+            {isAdminLoggedIn ? "Admin Panel" : "Admin"}
           </Button>
         </div>
       </div>
+      
+      <AdminLoginDialog
+        open={showAdminLogin}
+        onOpenChange={setShowAdminLogin}
+        onLoginSuccess={handleLoginSuccess}
+      />
     </header>
   );
 };

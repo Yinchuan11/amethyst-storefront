@@ -2,6 +2,7 @@ import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { ShoppingCart } from "lucide-react";
 import productPlaceholder from "@/assets/product-placeholder.jpg";
+import { useCart } from "@/contexts/CartContext";
 import { useToast } from "@/hooks/use-toast";
 
 interface Product {
@@ -16,11 +17,13 @@ interface ProductCardProps {
 }
 
 const ProductCard = ({ product }: ProductCardProps) => {
+  const { addToCart } = useCart();
   const { toast } = useToast();
 
   const handleAddToCart = () => {
+    addToCart(product);
     toast({
-      title: "Produkt hinzugefügt",
+      title: "Hinzugefügt!",
       description: `${product.name} wurde zum Warenkorb hinzugefügt.`,
     });
   };
